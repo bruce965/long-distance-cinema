@@ -1,6 +1,6 @@
 {
   "name": "long-distance-cinema",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Remote synchronization of video playback.",
   "repository": "https://github.com/bruce965/long-distance-cinema",
   "author": "Fabio Iotti",
