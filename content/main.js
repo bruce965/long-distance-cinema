@@ -131,11 +131,14 @@
     panel.style.boxShadow = '0 4px 8px rgba(0, 0, 0, .4)';
     panel.style.margin = '0';
     panel.style.padding = '.6em .8em';
+    panel.style.fontFamily = 'sans-serif';
     panel.style.fontSize = '14px';
+    panel.style.color = 'black';
     document.body.appendChild(panel);
 
     const panelHideButton = document.createElement('button');
     panelHideButton.textContent = "Hide this panel";
+    panelHideButton.style.marginBottom = '1em';
 
     panelHideButton.addEventListener('click', () => {
       panel.style.display = 'none';
@@ -151,10 +154,23 @@
     const buildConnectionDiv = conn => {
       const div = document.createElement('div');
 
-      div.textContent = `Connected with ${conn.peer}`;
+      const status = document.createElement('span');
+      status.textContent = `Connecting with ${conn.peer}...`;
+      div.appendChild(status);
 
       const button = document.createElement('button');
       button.textContent = "Disconnect";
+      button.disabled = true;
+
+      const setConnectionOpen = () => {
+        status.textContent = `Connected with ${conn.peer}`;
+        button.disabled = false;
+      }
+
+      if (conn.open)
+        setConnectionOpen();
+      else
+        conn.on('open', setConnectionOpen);
 
       button.addEventListener('click', () => {
         conn.close();
@@ -167,13 +183,39 @@
 
     //#endregion
 
-    const peerId = document.createElement('div');
-    peerId.textContent = "Your peer id: ...";
-    panel.appendChild(peerId);
+    const peerIdLabel = document.createElement('div');
+    peerIdLabel.textContent = "Your peer id: ";
+    peerIdLabel.style.marginBottom = '1em';
+    panel.appendChild(peerIdLabel);
+
+    const peerId = document.createElement('input');
+    peerId.style.width = '300px';
+    peerId.readOnly = true;
+    peerIdLabel.appendChild(peerId);
+
+    const peerIdCopyBtn = document.createElement('button');
+    peerIdCopyBtn.textContent = 'Copy';
+    peerIdCopyBtn.disabled = true;
+    peerIdCopyBtn.addEventListener('click', () => {
+      peerId.select();
+      navigator.clipboard.writeText(peerId.value);
+
+      peerIdCopyBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        peerIdCopyBtn.textContent = 'Copy';
+      }, 2000);
+    });
+    peerIdLabel.appendChild(peerIdCopyBtn);
 
     const connectInput = document.createElement('input');
     connectInput.placeholder = "Enter your friend's peer id...";
     connectInput.addEventListener('change', () => {
+      connectBtn.disabled = !connectInput.value;
+    });
+    connectInput.addEventListener('keyup', () => {
+      connectBtn.disabled = !connectInput.value;
+    });
+    connectInput.addEventListener('input', () => {
       connectBtn.disabled = !connectInput.value;
     });
     panel.appendChild(connectInput);
@@ -182,52 +224,50 @@
     connectBtn.textContent = "Connect";
     connectBtn.disabled = true;
     connectBtn.addEventListener('click', () => {
-      connectBtn.textContent = "Connecting...";
-      connectBtn.disabled = true;
-      connectInput.disabled = true;
-
-      const restore = () => {
-        connectBtn.textContent = "Connect";
-        connectBtn.disabled = false;
-        connectInput.value = '';
-        connectInput.disabled = false;
-      };
-
       const remotePeerId = connectInput.value;
       const conn = peer.connect(remotePeerId);
+
+      console.log("[LongDistanceCinema] outgoing connection. Id:", conn.peer);
+      registerConnection(conn);
+
+      const connectionTimeout = setTimeout(() => {
+        console.log("[LongDistanceCinema] outgoing connection request timed out (with", conn.peer, ").");
+        conn.close();
+        unregisterConnection(conn);
+      }, 20000);
+
       conn.on('open', () => {
         console.log("[LongDistanceCinema] outgoing connection opened (with", conn.peer, ").");
-        restore();
-
-        registerConnection(conn);
+        clearTimeout(connectionTimeout);
       });
       conn.on('close', () => {
         console.log("[LongDistanceCinema] outgoing connection closed (with", conn.peer, ").");
-        restore();  // TODO: necessary?
-
         unregisterConnection(conn);
       });
       conn.on('error', err => {
         console.error("[LongDistanceCinema] outgoing connection error (with", conn.peer, "):", err);
-        restore();
-
         unregisterConnection(conn);
       });
       conn.on('data', data => {
         console.debug("[LongDistanceCinema] incoming data (with", remotePeerId, "):", data);
-
         receiveData(data);
       });
+
+      connectInput.value = '';
     });
     panel.appendChild(connectBtn);
 
     peer.on('open', id => {
       console.log("[LongDistanceCinema] peer opened. Id:", id);
 
-      peerId.textContent = `Your peer id: ${id}`;
+      peerId.value = id;
+      peerIdCopyBtn.disabled = false;
     });
     peer.on('close', () => {
       console.log("[LongDistanceCinema] peer closed.");
+
+      peerId.value = '';
+      peerIdCopyBtn.disabled = true;
     });
     peer.on('connection', conn => {
       console.log("[LongDistanceCinema] incoming connection. Id:", conn.peer);
