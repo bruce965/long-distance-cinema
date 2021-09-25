@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/webextension",
+  "manifest_version": 2,
+  "name": "Long Distance Cinema",
+  "version": "0.2.1",
+  "description": "Remote synchronization of video playback.",
+  "homepage_url": "https://github.com/bruce965/long-distance-cinema",
+  "permissions": [
+    "activeTab"
+  ],
+  "icons": {
+    "128": "assets/icon.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "longdistancecinema@fabioiotti.com"
+    }
+  },
+  "browser_action": {
+    "browser_style": true,
+    "default_popup": "popup/main.html",
+    "default_icon": {
+      "128": "assets/icon.png"
+    }
+  },
+  "web_accessible_resources": [
+    "content/*"
+  ]
+}

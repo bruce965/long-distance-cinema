@@ -1,15 +1,32 @@
 {
   "name": "long-distance-cinema",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Remote synchronization of video playback.",
   "repository": "https://github.com/bruce965/long-distance-cinema",
   "author": "Fabio Iotti",
   "license": "MIT",
+  "scripts": {
+    "build": "parcel build --target webext-prod -- src/manifest.json",
+    "start": "parcel serve --host localhost --target webext-dev -- src/manifest.json"
+  },
   "dependencies": {
-    "peerjs": "^1.3.2"
+    "peerjs": "^1.3.2",
+    "webextension-polyfill": "^0.8.0"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.154",
-    "web-ext-types": "^3.2.1"
+    "@parcel/config-webextension": "^2.0.0-nightly.2467",
+    "@parcel/transformer-image": "^2.0.0-nightly.2467",
+    "parcel": "^2.0.0-nightly.843"
+  },
+  "targets": {
+    "webext-dev": {
+      "sourceMap": {
+        "inline": true,
+        "inlineSources": true
+      }
+    },
+    "webext-prod": {
+      "sourceMap": false
+    }
   }
 }

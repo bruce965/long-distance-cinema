@@ -1,8 +1,15 @@
-(() => {
-  /** @type {typeof import('peerjs')} */
-  const Peer = globalThis.Peer;
+import Peer from 'peerjs';
 
-  const MAX_LATENCY = 500;
+const MAX_LATENCY = 500;
+
+/** @type {HTMLElement | undefined} */
+let panel;
+
+const openPanel = () => {
+  if (panel) {
+    panel.style.display = '';
+    return;
+  }
 
   const video = (() => {
     const videos = [...document.querySelectorAll('video')];
@@ -33,7 +40,7 @@
   if (video != null) {
     const peer = new Peer();
 
-    /** @type {import('peerjs').DataConnection[]} */
+    /** @type {Peer.DataConnection[]} */
     const currentConnections = [];
 
     // status, shared with all peers
@@ -116,7 +123,7 @@
 
     //#region panel
 
-    const panel = document.createElement('div');
+    panel = document.createElement('div');
     panel.style.position = 'fixed';
     panel.style.zIndex = '99999';
     panel.style.top = '50px';
@@ -150,7 +157,7 @@
 
     //#region connection
 
-    /** @param {import('peerjs').DataConnection} conn */
+    /** @param {Peer.DataConnection} conn */
     const buildConnectionDiv = conn => {
       const div = document.createElement('div');
 
@@ -293,9 +300,11 @@
         receiveData(data);
       });
     });
-
-    window.__LONGDISTANCECINEMA = {
-      panel,
-    };
   };
-})();
+}
+
+window.__LONGDISTANCECINEMA = {
+  init() {
+    openPanel();
+  }
+};
